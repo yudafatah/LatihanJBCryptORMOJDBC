@@ -14,5 +14,5 @@ import java.util.List;
 public interface DAOInterface {
     public boolean doDML(Object object, boolean isDelete);//iud
     public List<Object> doDDL(Object table, String keyword);//sga
-    public Object getById(String table,Object id);
+    public Object getById(Object entity,Object id);
 }
