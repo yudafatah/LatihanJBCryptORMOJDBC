@@ -6,7 +6,9 @@
 package daos;
 
 import daos.DAOInterface;
+import entities.DepartmentAccount;
 import java.util.List;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 /**
@@ -14,7 +16,6 @@ import org.hibernate.SessionFactory;
  * @author Ignatius
  */
 public class GeneralDAO implements DAOInterface {
-
     private FunctionDAO fdao;
 
     public GeneralDAO(SessionFactory factory) {
@@ -76,4 +77,10 @@ public class GeneralDAO implements DAOInterface {
         
         return this.fdao.getById(entity,id);
     }
+
+    @Override
+    public DepartmentAccount login(String username, String password) {
+        return this.fdao.login(username, password);
+    }
+    
 }
