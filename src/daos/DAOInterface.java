@@ -5,6 +5,7 @@
  */
 package daos;
 
+import entities.DepartmentAccount;
 import java.util.List;
 
 /**
@@ -15,4 +16,5 @@ public interface DAOInterface {
     public boolean doDML(Object object, boolean isDelete);//iud
     public List<Object> doDDL(Object table, String keyword);//sga
     public Object getById(Object entity,Object id);
+    public DepartmentAccount login(String username, String password);
 }

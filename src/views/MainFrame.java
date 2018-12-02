@@ -35,6 +35,7 @@ public class MainFrame extends javax.swing.JFrame {
         jMenu2 = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("HR ");
 
         jMenu1.setText("File");
 
@@ -94,6 +95,11 @@ public class MainFrame extends javax.swing.JFrame {
         DepartmentView dv = new DepartmentView();
         dv.show();
         dskpMain.add(dv);
+//        DepartmentRegisterView drv = new DepartmentRegisterView();
+//        drv.show();
+//        DepartmentLoginView dlv = new DepartmentLoginView();
+//        dlv.show();
+//        dskpMain.add(dlv);
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     /**

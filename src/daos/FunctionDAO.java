@@ -5,7 +5,9 @@
  */
 package daos;
 
+import entities.DepartmentAccount;
 import entities.Region;
+import helper.BCrypt;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,56 +64,47 @@ public class FunctionDAO {
      * @param query
      * @return 
      */
-    public List<Object> getDatas(Object entities, String key){
-        List<Object> regions = new ArrayList<>();
+    public List<Object> getDatas(Object entities, String key) {
+        List<Object> rs = new ArrayList<>();
         String className = entities.getClass().getName();
-            
-            className = className.substring(className.indexOf(".")+1);
-            String query = "From "+className;
-            
-            
-            if(!key.equals("")){
-                query = getQuery(entities, key, query);
-            }
-//            System.out.println(query);
+        
+        className = className.substring(className.lastIndexOf(".") + 1);
+        String query = "From " + className + " ORDER BY 1 ";
+        System.out.println(className);
+        if (!key.equals("")) {
+            query = getQuery(entities, key);
+        }
+        System.out.println(query);
         try {
             session = factory.openSession();
             transaction = session.beginTransaction();
-            
-            session.createQuery(query).list();
+            rs = session.createQuery(query).list();
             transaction.commit();
         } catch (Exception e) {
             e.printStackTrace();
-            if(transaction!=null)transaction.rollback();
+            if (transaction != null) {
+                transaction.rollback();
+            }
         } finally {
             session.close();
         }
-        return regions;
+        return rs;
     }
     
-    public String getQuery(Object entity, String key, String query){
-        String className = entity.getClass().getName();
-        query += " WHERE ";
-        short count =0;
-        int Flenght=0;
-            for (Object gfield : entity.getClass().getDeclaredFields()) {
-                String sfield = gfield +"";
-                if(!sfield.contains("UID")&& !sfield.contains("List")){
-                    Flenght+=1;
-                    }
-                }
-            for (Object field : entity.getClass().getDeclaredFields()) {
-                String sfield = field +"";
-                if(!sfield.contains("UID")&& !sfield.contains("List")){
-                    sfield = sfield.substring(sfield.lastIndexOf(".")+1);
-                    query += sfield + " LIKE '%"+key+"%' ";
-                    if(count < Flenght-1){
-                        query += "OR ";
-                    }
-                }
-                count++;
+    public String getQuery(Object entity, String key) {
+        String className = entity.getClass().getSimpleName();
+        className = className.substring(className.lastIndexOf(".") + 1);
+        String query = "FROM "+className+" WHERE ";
+        for (Object r : entity.getClass().getDeclaredFields()) {
+            String field = r + "";
+            if (!field.contains("UID") && !field.contains("List")) {
+                field = field.substring(field.lastIndexOf(".") + 1);
+                query += field + " LIKE '%" + key + "%' OR ";
             }
-            return query;
+        }
+        query = query.substring(0, query.lastIndexOf("OR")) + " ORDER BY 1";
+
+        return query;
     }
     
     /**
@@ -121,12 +114,13 @@ public class FunctionDAO {
      */
     public Object getById(Object entity, Object id){
         Object object = new Object();
-        String className = entity.getClass().getName();
+        String className = entity.getClass().getSimpleName();
+        String query = className.toLowerCase() +"Id";
         try {
             session = factory.openSession();
             transaction = session.beginTransaction();
             object = session.createQuery("FROM "+ entity.getClass().getSimpleName() 
-                    +" WHERE "+"?"+" ="+id)
+                    +" WHERE "+query+" ="+id)
                     .uniqueResult();
             transaction.commit();
         } catch (Exception e) {
@@ -136,5 +130,39 @@ public class FunctionDAO {
             session.close();
         }
         return object;
+    }
+    /**
+     * to find password by username
+     * @param entity Object table
+     * @param username username of account
+     * @return 
+     */
+    public DepartmentAccount find(String username){
+        DepartmentAccount account = null;
+        session = factory.openSession();
+        transaction =null;
+        try {
+            transaction = session.beginTransaction();
+            account = (DepartmentAccount) session.createQuery("FROM DepartmentAccount WHERE"
+                    + " username = :username").setString("username", username).uniqueResult();
+            transaction.commit();
+        } catch (Exception e) {
+            account = null;
+            if(transaction!=null){
+                transaction.rollback();
+            }
+        }finally{
+            session.close();
+        }
+        return account;
+    }
+    public DepartmentAccount login(String username, String password){
+        DepartmentAccount account = this.find(username);
+        if (account != null){
+            if(BCrypt.checkpw(password, account.getPassword())){
+                return account;
+            }
+        }
+        return null;
     }
 }

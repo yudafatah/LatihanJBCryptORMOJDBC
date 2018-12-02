@@ -8,6 +8,8 @@ package views;
 
 
 import controllers.DepartmentController;
+import controllers.DepartmentController1;
+import controllers.DepartmentControllerInterface;
 import daos.DAOInterface;
 import daos.GeneralDAO;
 import entities.Department;
@@ -29,25 +31,30 @@ import tools.HibernateUtil;
 public class DepartmentView extends javax.swing.JInternalFrame {
     SessionFactory sessionFactory = sessionFactory = HibernateUtil.getSessionFactory();;
     DepartmentController dc = new DepartmentController(sessionFactory);
-    DAOInterface daoi = new GeneralDAO(sessionFactory);
+    DepartmentControllerInterface daoi = new DepartmentController1(sessionFactory);
     /**
      * Creates new form RegionView
      */
     public DepartmentView() {
         initComponents();
         System.out.println(sessionFactory);
-        getDatas(daoi.doDDL("Department", ""));
+        reset();
+        selectEmployeeId();
+        selectLocatoId();
     }
     
     public void reset(){
-        txtDepartId.setText("");
+        getDatas(daoi.getAlls(new Department(), ""));
+        String maxId="";
+        for (Object all : daoi.getAlls(new Department(), "")) {
+            Department department = (Department) all;
+            maxId =""+(department.getDepartmentId()+1);
+        }
+        txtDepartId.setEditable(false);
+        txtDepartId.setText(maxId);
         txtDepartName.setText("");
-        txtSearch.setText("");
-        txtSearchId.setText("");
-        btnSave.setText("Save");
         cbxManager.setSelectedItem("Pilih Manager");
         cbxLocation.setSelectedItem("Pilih Location");
-        getDatas(daoi.doDDL("Department", ""));
     }
     
     private void getDatas(List<Object> dep){
@@ -61,10 +68,13 @@ public class DepartmentView extends javax.swing.JInternalFrame {
                 String isi0 = String.valueOf(no);
                 String isi1 = String.valueOf(department.getDepartmentId());
                 String isi2 = department.getDepartmentName();
-                String isi4 = department.getLocationId().getCity();
+                String isi4 = "";
                 String isi3 = "";
                 if(department.getManagerId()!=null){
                     isi3 =""+department.getManagerId().getLastName();
+                }
+                if(department.getLocationId()!=null){
+                    isi4=""+department.getLocationId().getCity();
                 }
                 String kolom[] = {isi0, isi1, isi2, isi3,isi4};
                 data.addRow(kolom);
@@ -168,9 +178,9 @@ public class DepartmentView extends javax.swing.JInternalFrame {
 
         jLabel4.setText("Location");
 
-        cbxManager.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        cbxManager.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Pilih Manager" }));
 
-        cbxLocation.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        cbxLocation.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Pilih Location" }));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -254,6 +264,8 @@ public class DepartmentView extends javax.swing.JInternalFrame {
 
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
         // TODO add your handling code here:
+        reset();
+        
     }//GEN-LAST:event_btnResetActionPerformed
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
@@ -263,16 +275,12 @@ public class DepartmentView extends javax.swing.JInternalFrame {
             String departName = txtDepartName.getText();
             String manager = cbxManager.getSelectedItem().toString();
             String location = cbxLocation.getSelectedItem().toString();
-            Employee employee = new Employee(Integer.parseInt(manager));
-            Location location1 = new Location(Short.parseShort(location));
-            Department department = new Department(Short.parseShort(idDepart), departName, employee, location1);
+//            Employee employee = new Employee(Integer.parseInt(manager));
+//            Location location1 = new Location(Short.parseShort(location));
+            //Department department = new Department(Short.parseShort(idDepart), departName, employee, location1);
             if (!idDepart.equals("") && !departName.equals("")) {
-                if (daoi.doDML(department,false)) {
-                    JOptionPane.showMessageDialog(null, "Insert departmen berhasil");
-                    reset();
-                } else {
-                    JOptionPane.showMessageDialog(null, "Insert departmen gagal");
-                }
+                JOptionPane.showMessageDialog(null, daoi.insert(idDepart,departName));
+                reset();
             } else {
                 JOptionPane.showMessageDialog(null, "Form input tidak boleh kosong");
             }
@@ -282,17 +290,13 @@ public class DepartmentView extends javax.swing.JInternalFrame {
             String departName = txtDepartName.getText();
             String manager = cbxManager.getSelectedItem().toString();
             String location = cbxLocation.getSelectedItem().toString();
-            Employee employee = new Employee(Integer.parseInt(manager));
-            Location location1 = new Location(Short.parseShort(location));
-            Department department = new Department(Short.parseShort(idDepart), departName, employee, location1);
+//            Employee employee = new Employee(Integer.parseInt(manager));
+//            Location location1 = new Location(Short.parseShort(location));
+            //Department department = new Department(Short.parseShort(idDepart), departName, employee, location1);
 
             if (!idDepart.equals("") && !departName.equals("")) {
-                if (daoi.doDML(department,false)) {
-                    JOptionPane.showMessageDialog(null, "Update departmen berhasil");
-                    reset();
-                } else {
-                    JOptionPane.showMessageDialog(null, "Update departmen gagal");
-                }
+                JOptionPane.showMessageDialog(null, daoi.update(idDepart,departName));
+                reset();
             } else {
                 JOptionPane.showMessageDialog(null, "Form input tidak boleh kosong");
             } 
@@ -304,15 +308,10 @@ public class DepartmentView extends javax.swing.JInternalFrame {
         if(!txtDepartId.getText().equals("") && !txtDepartName.getText().equals("")){
             int dialogButton = 0;
             int dialog = JOptionPane.showConfirmDialog (null, "Yakin hapus data?","Warning",dialogButton);
-            Department department = new Department(Short.parseShort(txtDepartId.getText()));
             if(dialog == JOptionPane.YES_OPTION){
-                if(daoi.doDML(department,true)){
-                    JOptionPane.showMessageDialog(null, "Data dengan id : " + txtDepartId.getText()+" berhasil dihapus");
-                    reset();
-                } else{
-                    JOptionPane.showMessageDialog(null, "Gagal menghapus data!");
-                    reset();
-                }
+                JOptionPane.showMessageDialog(null, "Data dengan id : "
+                        + "" + txtDepartId.getText()+daoi.delete(txtDepartId.getText()));
+                reset();
             }
         } else {
             JOptionPane.showMessageDialog(null, "Pilih data yang ingin dihapus!");
@@ -321,26 +320,16 @@ public class DepartmentView extends javax.swing.JInternalFrame {
 
     private void btnSearchIdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchIdActionPerformed
         // TODO add your handling code here:
-        Object[] header = {"No", "Department ID", "Department Name", "Manager", "Location"};
-        DefaultTableModel data = new DefaultTableModel(null, header);
-        tableReg.setModel(data); 
-        try {
-                int no = 1;
-                String isi0 = String.valueOf(no);
-                String isi1 = "";
-                String isi2 = dc.getDepartmentId(txtSearchId.getText()).getDepartmentName();
-                String isi4 = dc.getDepartmentId(txtSearchId.getText()).getManagerId().getFirstName();
-                String isi3 = dc.getDepartmentId(txtSearchId.getText()).getLocationId().getCity();
-                String kolom[] = {isi0, isi1, isi2, isi3,isi4};
-                data.addRow(kolom);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Oops! : " + e.getMessage());
-        }
+        Department department = (Department) daoi.getById(new Department(), txtSearchId.getText());
+        txtDepartId.setText(department.getDepartmentId().toString());
+        txtDepartName.setText(department.getDepartmentName());
+        cbxManager.setSelectedItem(department.getManagerId().getManagerId()+" "
+                + ""+department.getManagerId().getLastName());
     }//GEN-LAST:event_btnSearchIdActionPerformed
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
         // TODO add your handling code here:
-        getDatas(daoi.doDDL("Department",txtSearch.getText()));
+        getDatas(daoi.search(new Department(), txtSearch.getText()));
     }//GEN-LAST:event_btnSearchActionPerformed
 
     private void tableRegMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableRegMouseClicked
@@ -381,7 +370,8 @@ public class DepartmentView extends javax.swing.JInternalFrame {
         String employeeId;
         String lastName;
         try {
-            for (Employee employee : dc.getManagerId()) {
+            for (Object obj : daoi.getManagerId(new Employee(), "")) {
+                Employee employee = (Employee) obj;
                 employeeId = String.valueOf(employee.getEmployeeId());
                 lastName = employee.getLastName();
                 String mix = employeeId+" "+lastName;
@@ -395,7 +385,8 @@ public class DepartmentView extends javax.swing.JInternalFrame {
         String locationId;
         String city;
         try {
-            for (Location location : dc.getLocationId()) {
+            for (Object obj : daoi.getLocationId(new Location(), "")) {
+                Location location = (Location) obj;
                 locationId = String.valueOf(location.getLocationId());
                 city = location.getCity();
                 String mix = locationId+" "+city;
